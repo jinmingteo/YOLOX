@@ -83,6 +83,11 @@ def make_parser():
         action="store_true",
         help="Using TensorRT model for testing.",
     )
+    parser.add_argument(
+        "--show_classes",
+        default=None,
+        help="show_classes separated by commas",
+    )
     return parser
 
 
@@ -108,6 +113,7 @@ class Predictor(object):
         device="cpu",
         fp16=False,
         legacy=False,
+        show_classes=None,
     ):
         self.model = model
         self.cls_names = cls_names
@@ -119,6 +125,7 @@ class Predictor(object):
         self.device = device
         self.fp16 = fp16
         self.preproc = ValTransform(legacy=legacy)
+        self.show_classes=show_classes
         if trt_file is not None:
             from torch2trt import TRTModule
 
@@ -180,7 +187,7 @@ class Predictor(object):
         cls = output[:, 6]
         scores = output[:, 4] * output[:, 5]
 
-        vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names)
+        vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names, self.show_classes)
         return vis_res
 
 
@@ -297,8 +304,9 @@ def main(exp, args):
     else:
         trt_file = None
         decoder = None
-
-    predictor = Predictor(model, exp, COCO_CLASSES, trt_file, decoder, args.device, args.fp16, args.legacy)
+    
+    show_classes = args.show_classes.split(',') if args.show_classes else None
+    predictor = Predictor(model, exp, COCO_CLASSES, trt_file, decoder, args.device, args.fp16, args.legacy, args.show_classes)
     current_time = time.localtime()
     if args.demo == "image":
         image_demo(predictor, vis_folder, args.path, current_time, args.save_result)

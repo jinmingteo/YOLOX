@@ -8,13 +8,13 @@ import numpy as np
 __all__ = ["vis"]
 
 
-def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
+def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None, show_classes=None):
 
     for i in range(len(boxes)):
         box = boxes[i]
         cls_id = int(cls_ids[i])
         score = scores[i]
-        if score < conf:
+        if score < conf or (show_classes and class_names[cls_id] not in show_classes):
             continue
         x0 = int(box[0])
         y0 = int(box[1])
